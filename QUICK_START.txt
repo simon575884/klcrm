@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════════════════════
+  K&L 24 HOUR MOBILE TIRE & ROADSIDE SERVICE - CRM SYSTEM
+═══════════════════════════════════════════════════════════════════
+
+✅ INSTALLATION COMPLETE!
+
+═══════════════════════════════════════════════════════════════════
+📊 CURRENT STATUS
+═══════════════════════════════════════════════════════════════════
+
+✅ Backend Server: RUNNING on http://localhost:5000
+✅ Frontend Server: RUNNING on http://localhost:3000
+✅ Database: INITIALIZED with default users
+
+═══════════════════════════════════════════════════════════════════
+🌐 ACCESS YOUR CRM
+═══════════════════════════════════════════════════════════════════
+
+1. Open your browser
+2. Go to: http://localhost:3000
+3. Login with credentials below
+
+═══════════════════════════════════════════════════════════════════
+🔐 LOGIN CREDENTIALS
+═══════════════════════════════════════════════════════════════════
+
+OWNER (Full Access):
+  Username: owner
+  Password: admin123
+
+WORKER (Limited Access):
+  Username: worker
+  Password: worker123
+
+RECEPTIONIST (Data Entry):
+  Username: receptionist
+  Password: reception123
+
+═══════════════════════════════════════════════════════════════════
+🎯 FEATURES AVAILABLE
+═══════════════════════════════════════════════════════════════════
+
+✅ Customer Management
+   - Add, Edit, Delete customers
+   - Search by phone number
+   - Store contact details
+
+✅ Vehicle Management
+   - Add vehicles for customers
+   - Search by number plate
+   - Track vehicle details
+
+✅ Repair Job Management
+   - Create repair jobs
+   - Track status (Pending/In Progress/Completed)
+   - Record problem & repair details
+   - Manage costs
+
+✅ Payment Tracking
+   - Record payments (Cash/Card/Online)
+   - Track payment status (Paid/Unpaid)
+   - Payment history
+
+✅ Dashboard Analytics
+   - Total customers count
+   - Total repair jobs
+   - Pending & completed jobs
+   - Total earnings
+   - Monthly earnings chart
+   - Job status distribution chart
+
+✅ Invoice System
+   - Auto-generate invoice numbers
+   - Professional invoice layout
+   - PDF download
+   - Print functionality
+   - Business branding included
+
+✅ Search Functionality
+   - Real-time customer search by phone
+   - Real-time vehicle search by plate
+
+✅ Role-Based Access
+   - Owner: Full control
+   - Worker: View & limited edit
+   - Receptionist: Data entry focus
+
+═══════════════════════════════════════════════════════════════════
+🔧 IF SERVERS ARE NOT RUNNING
+═══════════════════════════════════════════════════════════════════
+
+Open TWO PowerShell windows:
+
+WINDOW 1 (Backend):
+  cd "C:\Users\Attiqur Rehman\Downloads\CRM K&NL"
+  node server/index.js
+
+WINDOW 2 (Frontend):
+  cd "C:\Users\Attiqur Rehman\Downloads\CRM K&NL\client"
+  node node_modules/vite/bin/vite.js
+
+═══════════════════════════════════════════════════════════════════
+🧪 TEST CONNECTION
+═══════════════════════════════════════════════════════════════════
+
+Open this file in browser to test:
+  test-connection.html
+
+Or manually check:
+  Backend: http://localhost:5000
+  Frontend: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════
+📞 BUSINESS INFORMATION
+═══════════════════════════════════════════════════════════════════
+
+Business: K&L 24 HOUR MOBILE TIRE & ROADSIDE SERVICE
+Owner: Luis Griffin
+Phone: 803-477-1467
+Email: klmobileexp@yahoo.com
+Address: 1470 Bella Vista Dr, Columbia, SC 29223, United States
+
+═══════════════════════════════════════════════════════════════════
+💡 TIPS
+═══════════════════════════════════════════════════════════════════
+
+1. Always start backend BEFORE frontend
+2. Keep both terminal windows open while using the app
+3. Data is saved in: server/kl_crm.json
+4. To reset data, delete kl_crm.json and run: npm run init-db
+
+═══════════════════════════════════════════════════════════════════
+
+🎉 ENJOY YOUR NEW CRM SYSTEM!
+
+═══════════════════════════════════════════════════════════════════
