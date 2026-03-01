@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { UserCheck, Users, Clock, Plus, Edit2, Trash2, LogIn, LogOut as LogOutIcon, Calendar } from 'lucide-react';
+import api from '../lib/api';
 
 function StaffAttendance() {
   const [activeTab, setActiveTab] = useState('staff');
@@ -12,11 +12,11 @@ function StaffAttendance() {
   const [editingStaff, setEditingStaff] = useState(null);
   
   const [staffForm, setStaffForm] = useState({
-    name: '', phone: '', email: '', position: '', joining_date: '', status: 'Active'
+    name: '', phone: '', email: '', position: '', hire_date: '', status: 'active'
   });
 
   const [attendanceForm, setAttendanceForm] = useState({
-    staff_id: '', date: '', notes: ''
+    staff_id: '', date: '', status: 'present', notes: ''
   });
 
   useEffect(() => {
@@ -26,36 +26,29 @@ function StaffAttendance() {
   }, []);
 
   const fetchStaff = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/staff', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStaff(response.data);
+      const data = await api.staff.getAll();
+      setStaff(data);
     } catch (error) {
       console.error('Failed to fetch staff', error);
     }
   };
 
   const fetchAttendance = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/attendance', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAttendance(response.data);
+      const data = await api.attendance.getAll();
+      setAttendance(data);
     } catch (error) {
       console.error('Failed to fetch attendance', error);
     }
   };
 
   const fetchTodayAttendance = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/attendance/today', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTodayAttendance(response.data);
+      const data = await api.attendance.getAll();
+      const today = new Date().toISOString().split('T')[0];
+      const todayData = data.filter(a => a.date === today);
+      setTodayAttendance(todayData);
     } catch (error) {
       console.error('Failed to fetch today attendance', error);
     }
@@ -63,85 +56,86 @@ function StaffAttendance() {
 
   const handleStaffSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
       if (editingStaff) {
-        await axios.put(`/api/staff/${editingStaff.id}`, staffForm, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.staff.update(editingStaff.id, staffForm);
       } else {
-        await axios.post('/api/staff', staffForm, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.staff.create(staffForm);
       }
       setShowStaffModal(false);
       resetStaffForm();
       fetchStaff();
     } catch (error) {
-      alert(error.response?.data?.error || 'Operation failed');
+      alert(error.message || 'Operation failed');
     }
   };
 
   const handleCheckIn = async (staffId) => {
-    const token = localStorage.getItem('token');
     try {
-      await axios.post('/api/attendance/check-in', { staff_id: staffId }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const today = new Date().toISOString().split('T')[0];
+      await api.attendance.create({
+        staff_id: staffId,
+        date: today,
+        status: 'present',
+        check_in: new Date().toISOString(),
+        notes: 'Checked in'
       });
       fetchTodayAttendance();
       fetchAttendance();
       alert('Checked in successfully!');
     } catch (error) {
-      alert(error.response?.data?.error || 'Check-in failed');
+      alert(error.message || 'Check-in failed');
     }
   };
 
   const handleCheckOut = async (staffId) => {
-    const token = localStorage.getItem('token');
     try {
-      await axios.post('/api/attendance/check-out', { staff_id: staffId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const today = new Date().toISOString().split('T')[0];
+      const todayRecord = todayAttendance.find(a => a.staff_id === staffId);
+      if (todayRecord) {
+        await api.attendance.update(todayRecord.id, {
+          ...todayRecord,
+          check_out: new Date().toISOString(),
+          notes: 'Checked out'
+        });
+      }
       fetchTodayAttendance();
       fetchAttendance();
       alert('Checked out successfully!');
     } catch (error) {
-      alert(error.response?.data?.error || 'Check-out failed');
+      alert(error.message || 'Check-out failed');
     }
   };
 
   const handleMarkLeave = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
-      await axios.post('/api/attendance/leave', attendanceForm, {
-        headers: { Authorization: `Bearer ${token}` }
+      await api.attendance.create({
+        ...attendanceForm,
+        status: 'leave'
       });
       setShowAttendanceModal(false);
       resetAttendanceForm();
       fetchAttendance();
       fetchTodayAttendance();
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to mark leave');
+      alert(error.message || 'Failed to mark leave');
     }
   };
 
   const resetStaffForm = () => {
-    setStaffForm({ name: '', phone: '', email: '', position: '', joining_date: '', status: 'Active' });
+    setStaffForm({ name: '', phone: '', email: '', position: '', hire_date: '', status: 'active' });
     setEditingStaff(null);
   };
 
   const resetAttendanceForm = () => {
-    setAttendanceForm({ staff_id: '', date: '', notes: '' });
+    setAttendanceForm({ staff_id: '', date: '', status: 'present', notes: '' });
   };
 
   const handleDeleteStaff = async (id) => {
     if (!confirm('Delete this staff member?')) return;
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`/api/staff/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.staff.delete(id);
       fetchStaff();
     } catch (error) {
       alert('Failed to delete staff');

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Search, Plus, Trash2 } from 'lucide-react';
+import api from '../lib/api';
 
 function Vehicles() {
   const [vehicles, setVehicles] = useState([]);
@@ -9,9 +9,10 @@ function Vehicles() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     customer_id: '',
-    car_model: '',
-    number_plate: '',
-    manufacturing_year: '',
+    make: '',
+    model: '',
+    year: '',
+    license_plate: '',
     color: ''
   });
 
@@ -21,24 +22,18 @@ function Vehicles() {
   }, []);
 
   const fetchVehicles = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/vehicles', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setVehicles(response.data);
+      const data = await api.vehicles.getAll();
+      setVehicles(data);
     } catch (error) {
       console.error('Failed to fetch vehicles', error);
     }
   };
 
   const fetchCustomers = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/customers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomers(response.data);
+      const data = await api.customers.getAll();
+      setCustomers(data);
     } catch (error) {
       console.error('Failed to fetch customers', error);
     }
@@ -49,12 +44,10 @@ function Vehicles() {
       fetchVehicles();
       return;
     }
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get(`/api/vehicles/search?plate=${searchPlate}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setVehicles(response.data);
+      const data = await api.vehicles.getAll();
+      const filtered = data.filter(v => v.license_plate?.toLowerCase().includes(searchPlate.toLowerCase()));
+      setVehicles(filtered);
     } catch (error) {
       console.error('Search failed', error);
     }
@@ -62,26 +55,20 @@ function Vehicles() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
-      await axios.post('/api/vehicles', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.vehicles.create(formData);
       setShowModal(false);
-      setFormData({ customer_id: '', car_model: '', number_plate: '', manufacturing_year: '', color: '' });
+      setFormData({ customer_id: '', make: '', model: '', year: '', license_plate: '', color: '' });
       fetchVehicles();
     } catch (error) {
-      alert(error.response?.data?.error || 'Failed to add vehicle');
+      alert(error.message || 'Failed to add vehicle');
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this vehicle?')) return;
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`/api/vehicles/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.vehicles.delete(id);
       fetchVehicles();
     } catch (error) {
       alert('Failed to delete vehicle');

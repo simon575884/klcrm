@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Calendar, Plus, Edit2, Trash2, Clock } from 'lucide-react';
+import api from '../lib/api';
 
 function Appointments() {
   const [appointments, setAppointments] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [formData, setFormData] = useState({
-    client_name: '', phone: '', email: '', vehicle_number: '',
-    service_type: '', appointment_date: '', appointment_time: '',
-    problem_description: '', status: 'Pending'
+    customer_id: '', vehicle_id: '', appointment_date: '', appointment_time: '',
+    service_type: '', notes: '', status: 'scheduled'
   });
 
   useEffect(() => {
@@ -17,12 +16,9 @@ function Appointments() {
   }, []);
 
   const fetchAppointments = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/appointments', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAppointments(response.data);
+      const data = await api.appointments.getAll();
+      setAppointments(data);
     } catch (error) {
       console.error('Failed to fetch appointments', error);
     }
@@ -30,41 +26,32 @@ function Appointments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
       if (editingAppointment) {
-        await axios.put(`/api/appointments/${editingAppointment.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.appointments.update(editingAppointment.id, formData);
       } else {
-        await axios.post('/api/appointments', formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.appointments.create(formData);
       }
       setShowModal(false);
       resetForm();
       fetchAppointments();
     } catch (error) {
-      alert(error.response?.data?.error || 'Operation failed');
+      alert(error.message || 'Operation failed');
     }
   };
 
   const resetForm = () => {
     setFormData({
-      client_name: '', phone: '', email: '', vehicle_number: '',
-      service_type: '', appointment_date: '', appointment_time: '',
-      problem_description: '', status: 'Pending'
+      customer_id: '', vehicle_id: '', appointment_date: '', appointment_time: '',
+      service_type: '', notes: '', status: 'scheduled'
     });
     setEditingAppointment(null);
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this appointment?')) return;
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`/api/appointments/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.appointments.delete(id);
       fetchAppointments();
     } catch (error) {
       alert('Failed to delete appointment');

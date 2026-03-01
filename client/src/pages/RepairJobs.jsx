@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Plus, Edit2, Trash2, FileText } from 'lucide-react';
 import InvoiceModal from '../components/InvoiceModal';
+import api from '../lib/api';
 
 function RepairJobs({ user }) {
   const [repairs, setRepairs] = useState([]);
@@ -14,9 +14,9 @@ function RepairJobs({ user }) {
   const [showInvoice, setShowInvoice] = useState(false);
   const [selectedRepairId, setSelectedRepairId] = useState(null);
   const [formData, setFormData] = useState({
-    customer_id: '', vehicle_id: '', problem_description: '', repair_details: '',
-    repair_cost: '', repair_status: 'Pending', payment_amount: '0',
-    payment_method: '', payment_status: 'Unpaid'
+    customer_id: '', vehicle_id: '', description: '', repair_details: '',
+    parts_cost: '0', labor_cost: '0', total_cost: '0', status: 'pending',
+    payment_status: 'unpaid'
   });
 
   useEffect(() => {
@@ -31,36 +31,28 @@ function RepairJobs({ user }) {
   }, [selectedCustomer]);
 
   const fetchRepairs = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/repairs', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setRepairs(response.data);
+      const data = await api.repairs.getAll();
+      setRepairs(data);
     } catch (error) {
       console.error('Failed to fetch repairs', error);
     }
   };
 
   const fetchCustomers = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/customers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomers(response.data);
+      const data = await api.customers.getAll();
+      setCustomers(data);
     } catch (error) {
       console.error('Failed to fetch customers', error);
     }
   };
 
   const fetchCustomerVehicles = async (customerId) => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get(`/api/vehicles/customer/${customerId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomerVehicles(response.data);
+      const allVehicles = await api.vehicles.getAll();
+      const filtered = allVehicles.filter(v => v.customer_id === parseInt(customerId));
+      setCustomerVehicles(filtered);
     } catch (error) {
       console.error('Failed to fetch vehicles', error);
     }
@@ -68,30 +60,33 @@ function RepairJobs({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
+      // Calculate total cost
+      const parts = parseFloat(formData.parts_cost) || 0;
+      const labor = parseFloat(formData.labor_cost) || 0;
+      const dataToSubmit = {
+        ...formData,
+        total_cost: (parts + labor).toString()
+      };
+
       if (editingRepair) {
-        await axios.put(`/api/repairs/${editingRepair.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.repairs.update(editingRepair.id, dataToSubmit);
       } else {
-        await axios.post('/api/repairs', formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.repairs.create(dataToSubmit);
       }
       setShowModal(false);
       resetForm();
       fetchRepairs();
     } catch (error) {
-      alert(error.response?.data?.error || 'Operation failed');
+      alert(error.message || 'Operation failed');
     }
   };
 
   const resetForm = () => {
     setFormData({
-      customer_id: '', vehicle_id: '', problem_description: '', repair_details: '',
-      repair_cost: '', repair_status: 'Pending', payment_amount: '0',
-      payment_method: '', payment_status: 'Unpaid'
+      customer_id: '', vehicle_id: '', description: '', repair_details: '',
+      parts_cost: '0', labor_cost: '0', total_cost: '0', status: 'pending',
+      payment_status: 'unpaid'
     });
     setSelectedCustomer('');
     setCustomerVehicles([]);
@@ -100,11 +95,8 @@ function RepairJobs({ user }) {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this repair job?')) return;
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`/api/repairs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.repairs.delete(id);
       fetchRepairs();
     } catch (error) {
       alert('Failed to delete repair job');
