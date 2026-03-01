@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { Wrench } from 'lucide-react';
+import api from '../lib/api';
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -14,10 +14,10 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/login', { username, password });
-      onLogin(response.data.user, response.data.token);
+      const { user, token } = await api.auth.login(username, password);
+      onLogin(user, token);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }

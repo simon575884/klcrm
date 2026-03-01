@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Users, Wrench, Clock, CheckCircle, DollarSign, Calendar, UserCheck, UserX } from 'lucide-react';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
+import api from '../lib/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend);
 
@@ -16,19 +16,16 @@ function Dashboard() {
   }, []);
 
   const fetchDashboardData = async () => {
-    const token = localStorage.getItem('token');
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-
     try {
-      const [statsRes, earningsRes, distributionRes] = await Promise.all([
-        axios.get('/api/dashboard/stats', config),
-        axios.get('/api/dashboard/monthly-earnings', config),
-        axios.get('/api/dashboard/job-status-distribution', config)
+      const [statsData, earningsData, distributionData] = await Promise.all([
+        api.dashboard.getStats(),
+        api.dashboard.getMonthlyEarnings(),
+        api.dashboard.getJobStatusDistribution()
       ]);
 
-      setStats(statsRes.data);
-      setMonthlyEarnings(earningsRes.data);
-      setJobDistribution(distributionRes.data);
+      setStats(statsData);
+      setMonthlyEarnings(earningsData);
+      setJobDistribution(distributionData);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     }

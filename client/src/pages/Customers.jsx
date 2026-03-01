@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import api from '../lib/api';
 
 function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -14,12 +14,9 @@ function Customers() {
   }, []);
 
   const fetchCustomers = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get('/api/customers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomers(response.data);
+      const data = await api.customers.getAll();
+      setCustomers(data);
     } catch (error) {
       console.error('Failed to fetch customers', error);
     }
@@ -30,12 +27,10 @@ function Customers() {
       fetchCustomers();
       return;
     }
-    const token = localStorage.getItem('token');
     try {
-      const response = await axios.get(`/api/customers/search?phone=${searchPhone}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setCustomers(response.data);
+      const data = await api.customers.getAll();
+      const filtered = data.filter(c => c.phone.includes(searchPhone));
+      setCustomers(filtered);
     } catch (error) {
       console.error('Search failed', error);
     }
@@ -43,16 +38,11 @@ function Customers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     try {
       if (editingCustomer) {
-        await axios.put(`/api/customers/${editingCustomer.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.customers.update(editingCustomer.id, formData);
       } else {
-        await axios.post('/api/customers', formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.customers.create(formData);
       }
       setShowModal(false);
       setFormData({ name: '', phone: '', email: '', address: '' });
@@ -65,11 +55,8 @@ function Customers() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this customer?')) return;
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(`/api/customers/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.customers.delete(id);
       fetchCustomers();
     } catch (error) {
       alert('Failed to delete customer');
