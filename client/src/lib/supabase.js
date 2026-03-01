@@ -1,11 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Hardcoded values as fallback for production
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qjnyixyvkcdgrofapmfd.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqbnlpeHl2a2NkZ3JvZmFwbWZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzg2NjAsImV4cCI6MjA4Nzk1NDY2MH0.U3O8H_9KGFDazvaaRH9GjQjcbGouo8bbbiuhPgGxpNo';
 
-console.log('Supabase Config:', {
+// Validate configuration
+if (!supabaseUrl) {
+  throw new Error('Supabase URL is required');
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('Supabase Anon Key is required');
+}
+
+console.log('Supabase initialized:', {
   url: supabaseUrl,
-  hasKey: !!supabaseAnonKey
+  hasKey: !!supabaseAnonKey,
+  keyLength: supabaseAnonKey.length
 });
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
